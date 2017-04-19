@@ -210,7 +210,13 @@ thread_create (const char *name, int priority,
   t->ticks_blocked = 0;
   /* Add to run queue. */
   thread_unblock (t);
-
+  
+  // @wx 创建线程之后 如果优先级高于正在执行的线程
+  // 则将正在执行的线程放入就绪队列
+  // 让优先级最高的程序运行
+  if ( thread_current()->priority < priority ) {
+    thread_yield();
+  }
   return tid;
 }
 
@@ -247,7 +253,9 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_push_back (&ready_list, &t->elem);
+  // @wx 把就绪队列改为按优先级插入
+  //list_push_back (&ready_list, &t->elem);
+  list_insert_ordered (&ready_list, &t->elem, (list_less_func *) &thread_cmp_priority, NULL);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -318,7 +326,9 @@ thread_yield (void)
 
   old_level = intr_disable ();
   if (cur != idle_thread) 
-    list_push_back (&ready_list, &cur->elem);
+    // @wx
+	//list_push_back (&ready_list, &cur->elem);
+	list_insert_ordered (&ready_list, &cur->elem, (list_less_func *) &thread_cmp_priority, NULL);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -327,7 +337,8 @@ thread_yield (void)
 /* Invoke function 'func' on all threads, passing along 'aux'.
    This function must be called with interrupts off. */
 /*这个函数对每个线程执行func(这里自己定义blocked_thread_check)函数
-*它会在每次中断的时候调用
+* 在timer_interpret中调用
+* 使它会在每次中断的时候调用
 */
 void
 thread_foreach (thread_action_func *func, void *aux)
@@ -349,6 +360,10 @@ void
 thread_set_priority (int new_priority) 
 {
   thread_current ()->priority = new_priority;
+  // @wx 因为每次修改优先级 都要保证让优先级最高的程序运行
+  // 所以需要在设置有限级的地方调用thread_yield
+  // 对运行中和就绪状态下的线程重新排序
+  thread_yield ();
 }
 
 /* Returns the current thread's priority. */
@@ -474,7 +489,9 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
-  list_push_back (&all_list, &t->allelem);
+  // @wx 插入就绪队列的元素按优先级排队
+  // list_push_back (&all_list, &t->allelem);
+  list_insert_ordered (&all_list, &t->allelem, (list_less_func *) &thread_cmp_priority, NULL);
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
@@ -608,4 +625,11 @@ blocked_thread_check (struct thread *t, void *aux UNUSED)
           thread_unblock(t);    // 将线程放到就绪队列
       }
   }
+}
+
+/*@wx priority compare function. */
+bool
+thread_cmp_priority (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
+{
+  return list_entry(a, struct thread, elem)->priority > list_entry(b, struct thread, elem)->priority;
 }
