@@ -359,11 +359,28 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
-  thread_current ()->priority = new_priority;
-  // @wx 因为每次修改优先级 都要保证让优先级最高的程序运行
-  // 所以需要在设置有限级的地方调用thread_yield
-  // 对运行中和就绪状态下的线程重新排序
-  thread_yield ();
+  if(thread_mlfqs)
+    return ;
+  
+  enum intr_level old_level = intr_disable ();
+
+  struct thread * current_thread = thread_current ();
+  int old_priority = current_thread->priority;
+  current_thread->base_priority = new_priority;
+
+  // 如果当前线程没有加锁 或者 新的优先级大于旧的优先级
+  // 则修改优先级
+  if (list_empty (&current_thread->locks) || new_priority > old_priority)
+  {
+    current_thread->priority = new_priority;
+
+	 // @wx 因为每次修改优先级 都要保证让优先级最高的程序运行
+     // 所以需要在设置有限级的地方调用thread_yield
+     // 对运行中和就绪状态下的线程重新排序
+    thread_yield ();
+  }
+
+  intr_set_level (old_level);
 }
 
 /* Returns the current thread's priority. */
@@ -489,6 +506,11 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
+
+  // @wx 新加入元素的初始化
+  t->base_priority = priority;
+  list_init (&t->locks);
+  t->lock_waiting = NULL;
   // @wx 插入就绪队列的元素按优先级排队
   // list_push_back (&all_list, &t->allelem);
   list_insert_ordered (&all_list, &t->allelem, (list_less_func *) &thread_cmp_priority, NULL);
@@ -632,4 +654,49 @@ bool
 thread_cmp_priority (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
 {
   return list_entry(a, struct thread, elem)->priority > list_entry(b, struct thread, elem)->priority;
+}
+
+void
+thread_donate_priority (struct thread * t) 
+{
+	enum intr_level old_level = intr_disable();
+	thread_update_priority(t);
+
+	if (t->status == THREAD_READY)
+	{
+	  list_remove (&t->elem);
+	  list_insert_ordered (&ready_list, &t->elem, thread_cmp_priority, NULL);
+	}
+	intr_set_level (old_level);
+}
+
+/*remove a lock*/
+void
+thread_remove_lock (struct lock * lock)
+{
+  enum intr_level old_level = intr_disable ();
+  list_remove (&lock->elem);
+  thread_update_priority (thread_current ());
+  intr_set_level (old_level);
+}
+
+/*当释放掉一个锁的时候， 当前线程的优先级可能发生变化 
+我们用thread_update_priority来处理这个逻辑*/
+void 
+thread_update_priority (struct thread * t)
+{
+  enum intr_level old_level = intr_disable ();
+  int max_priority = t->base_priority;
+  int lock_priority;
+
+  if (!list_empty (&t->locks))
+  {
+    list_sort (&t->locks, lock_cmp_priority, NULL);
+    lock_priority - list_entry (list_front(&t->locks), struct lock, elem)->max_priority;
+	if (lock_priority > max_priority)
+      max_priority = lock_priority;   // 将申请该锁队列中的最大优先级赋给当前线程
+  }
+
+  t->priority = max_priority;
+  intr_set_level (old_level);
 }

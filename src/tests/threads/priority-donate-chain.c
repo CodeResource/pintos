@@ -58,7 +58,11 @@ test_priority_donate_chain (void)
 
   lock_acquire (&locks[0]);
   msg ("%s got lock.", thread_name ());
-
+  // @ wx
+  // main -x- 1 -x- 2 -x- 3 -x- 4 -x- 5 -x- 6 -x- 7 
+  // -x- 代表所 除了main 7 其他线程都有两把锁
+  // main的第第二把锁空 不会被阻塞
+  // 7的第一把锁空 阻塞于前一个线程
   for (i = 1; i < NESTING_DEPTH; i++)
     {
       char name[16];

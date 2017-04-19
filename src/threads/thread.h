@@ -103,6 +103,11 @@ struct thread
 
 	/*@wx 记录线程被阻塞的时间*/
 	int64_t ticks_blocked;
+
+	// @wx 为实现priority添加的数据结构
+	int base_priority;
+	struct list locks;				// 线程拥有的锁
+	struct lock * lock_waiting;		// 线程等待的锁
   };
 
 /* If false (default), use round-robin scheduler.
@@ -144,5 +149,10 @@ int thread_get_load_avg (void);
 /*@ wx*/
 void blocked_thread_check (struct thread *t, void *aux UNUSED);
 bool thread_cmp_priority (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+/*线程优先级捐赠*/
+void thread_donate_priority (struct thread * t);
+/*释放锁*/
+void thread_remove_lock (struct lock * lock);
+void thread_update_priority (struct thread * t);
 
 #endif /* threads/thread.h */

@@ -22,6 +22,10 @@ struct lock
   {
     struct thread *holder;      /* Thread holding lock (for debugging). */
     struct semaphore semaphore; /* Binary semaphore controlling access. */
+
+	// @wx 为实现优先级添加的锁
+	struct list_elem elem;		/*优先级捐赠的列表元素*/
+	int max_priority;			/*获取的锁的线程的最大优先级*/
   };
 
 void lock_init (struct lock *);
@@ -40,6 +44,13 @@ void cond_init (struct condition *);
 void cond_wait (struct condition *, struct lock *);
 void cond_signal (struct condition *, struct lock *);
 void cond_broadcast (struct condition *, struct lock *);
+
+/*@wx add*/
+void thread_hold_the_lock(struct lock * lock);
+
+/*@ wx 锁队列排序函数*/
+bool lock_cmp_priority (const struct list_elem *a, const struct list_elem *b, void *aux);
+bool cond_sema_cmp_priority (const struct list_elem *a, const struct list_elem *b, void *aux);
 
 /* Optimization barrier.
 
