@@ -236,7 +236,7 @@ lock_acquire (struct lock *lock)
 	  thread_hold_the_lock (lock);
   }
 
-  lock->holder = thread_current ();
+  lock->holder = current_thread;
 
   intr_set_level (old_level);
 }
@@ -269,16 +269,16 @@ lock_try_acquire (struct lock *lock)
 void
 lock_release (struct lock *lock) 
 {
+  if (!thread_mlfqs)
+  {
+    thread_remove_lock(lock);
+  }
+
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
 
   lock->holder = NULL;
   sema_up (&lock->semaphore);
-
-  if (!thread_mlfqs)
-  {
-    thread_remove_lock(lock);
-  }
 }
 
 /* Returns true if the current thread holds LOCK, false
