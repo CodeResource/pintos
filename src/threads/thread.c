@@ -206,6 +206,8 @@ thread_create (const char *name, int priority,
 
   intr_set_level (old_level);
 
+  /*@wx 线程被创建的时候初始化ticks_blocks为0*/
+  t->ticks_blocked = 0;
   /* Add to run queue. */
   thread_unblock (t);
 
@@ -324,6 +326,9 @@ thread_yield (void)
 
 /* Invoke function 'func' on all threads, passing along 'aux'.
    This function must be called with interrupts off. */
+/*这个函数对每个线程执行func(这里自己定义blocked_thread_check)函数
+*它会在每次中断的时候调用
+*/
 void
 thread_foreach (thread_action_func *func, void *aux)
 {
@@ -585,3 +590,22 @@ allocate_tid (void)
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
+
+/*@ wx*/
+/*检测被阻塞的线程*/
+/**
+*每次调用时 线程的ticks_blocked减一
+*当线程的ticks_blocked等于0时 唤醒线程
+*/
+void
+blocked_thread_check (struct thread *t, void *aux UNUSED)
+{
+  if (t->status == THREAD_BLOCKED && t->ticks_blocked > 0)
+  {
+      t->ticks_blocked--;
+      if (t->ticks_blocked == 0)
+      {
+          thread_unblock(t);    // 将线程放到就绪队列
+      }
+  }
+}
