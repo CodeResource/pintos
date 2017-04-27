@@ -275,14 +275,14 @@ lock_release (struct lock *lock)
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
 	
+  // @wx add
+  if (!thread_mlfqs)
+  {
+    thread_remove_lock(lock);
+  }
+
   lock->holder = NULL;
   sema_up (&lock->semaphore);
-
-  // @wx add
-   if (!thread_mlfqs)
-   {
-      thread_remove_lock(lock);
-   }
 }
 
 /* Returns true if the current thread holds LOCK, false
