@@ -206,14 +206,14 @@ thread_create (const char *name, int priority,
 
   intr_set_level (old_level);
 
-  /*@wx Ïß³Ì±»´´½¨µÄÊ±ºò³õÊ¼»¯ticks_blocksÎª0*/
+  /*@wx çº¿ç¨‹è¢«åˆ›å»ºçš„æ—¶å€™åˆå§‹åŒ–ticks_blocksä¸º0*/
   t->ticks_blocked = 0;
   /* Add to run queue. */
   thread_unblock (t);
   
-  // @wx ´´½¨Ïß³ÌÖ®ºó Èç¹ûÓÅÏÈ¼¶¸ßÓÚÕýÔÚÖ´ÐÐµÄÏß³Ì
-  // Ôò½«ÕýÔÚÖ´ÐÐµÄÏß³Ì·ÅÈë¾ÍÐ÷¶ÓÁÐ
-  // ÈÃÓÅÏÈ¼¶×î¸ßµÄ³ÌÐòÔËÐÐ
+  // @wx åˆ›å»ºçº¿ç¨‹ä¹‹åŽ å¦‚æžœä¼˜å…ˆçº§é«˜äºŽæ­£åœ¨æ‰§è¡Œçš„çº¿ç¨‹
+  // åˆ™å°†æ­£åœ¨æ‰§è¡Œçš„çº¿ç¨‹æ”¾å…¥å°±ç»ªé˜Ÿåˆ—
+  // è®©ä¼˜å…ˆçº§æœ€é«˜çš„ç¨‹åºè¿è¡Œ
   if ( thread_current()->priority < priority ) {
     thread_yield();
   }
@@ -253,7 +253,7 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  // @wx °Ñ¾ÍÐ÷¶ÓÁÐ¸ÄÎª°´ÓÅÏÈ¼¶²åÈë
+  // @wx æŠŠå°±ç»ªé˜Ÿåˆ—æ”¹ä¸ºæŒ‰ä¼˜å…ˆçº§æ’å…¥
   //list_push_back (&ready_list, &t->elem);
   list_insert_ordered (&ready_list, &t->elem, (list_less_func *) &thread_cmp_priority, NULL);
   t->status = THREAD_READY;
@@ -336,9 +336,9 @@ thread_yield (void)
 
 /* Invoke function 'func' on all threads, passing along 'aux'.
    This function must be called with interrupts off. */
-/*Õâ¸öº¯Êý¶ÔÃ¿¸öÏß³ÌÖ´ÐÐfunc(ÕâÀï×Ô¼º¶¨Òåblocked_thread_check)º¯Êý
-* ÔÚtimer_interpretÖÐµ÷ÓÃ
-* Ê¹Ëü»áÔÚÃ¿´ÎÖÐ¶ÏµÄÊ±ºòµ÷ÓÃ
+/*è¿™ä¸ªå‡½æ•°å¯¹æ¯ä¸ªçº¿ç¨‹æ‰§è¡Œfunc(è¿™é‡Œè‡ªå·±å®šä¹‰blocked_thread_check)å‡½æ•°
+* åœ¨timer_interpretä¸­è°ƒç”¨
+* ä½¿å®ƒä¼šåœ¨æ¯æ¬¡ä¸­æ–­çš„æ—¶å€™è°ƒç”¨
 */
 void
 thread_foreach (thread_action_func *func, void *aux)
@@ -368,15 +368,15 @@ thread_set_priority (int new_priority)
   int old_priority = current_thread->priority;
   current_thread->base_priority = new_priority;
 
-  // Èç¹ûµ±Ç°Ïß³ÌÃ»ÓÐ¼ÓËø »òÕß ÐÂµÄÓÅÏÈ¼¶´óÓÚ¾ÉµÄÓÅÏÈ¼¶
-  // ÔòÐÞ¸ÄÓÅÏÈ¼¶
+  // å¦‚æžœå½“å‰çº¿ç¨‹æ²¡æœ‰åŠ é” æˆ–è€… æ–°çš„ä¼˜å…ˆçº§å¤§äºŽæ—§çš„ä¼˜å…ˆçº§
+  // åˆ™ä¿®æ”¹ä¼˜å…ˆçº§
   if (list_empty (&current_thread->locks) || new_priority > old_priority)
   {
     current_thread->priority = new_priority;
 
-	 // @wx ÒòÎªÃ¿´ÎÐÞ¸ÄÓÅÏÈ¼¶ ¶¼Òª±£Ö¤ÈÃÓÅÏÈ¼¶×î¸ßµÄ³ÌÐòÔËÐÐ
-     // ËùÒÔÐèÒªÔÚÉèÖÃÓÐÏÞ¼¶µÄµØ·½µ÷ÓÃthread_yield
-     // ¶ÔÔËÐÐÖÐºÍ¾ÍÐ÷×´Ì¬ÏÂµÄÏß³ÌÖØÐÂÅÅÐò
+	 // @wx å› ä¸ºæ¯æ¬¡ä¿®æ”¹ä¼˜å…ˆçº§ éƒ½è¦ä¿è¯è®©ä¼˜å…ˆçº§æœ€é«˜çš„ç¨‹åºè¿è¡Œ
+     // æ‰€ä»¥éœ€è¦åœ¨è®¾ç½®æœ‰é™çº§çš„åœ°æ–¹è°ƒç”¨thread_yield
+     // å¯¹è¿è¡Œä¸­å’Œå°±ç»ªçŠ¶æ€ä¸‹çš„çº¿ç¨‹é‡æ–°æŽ’åº
     thread_yield ();
   }
 
@@ -507,11 +507,11 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
 
-  // @wx ÐÂ¼ÓÈëÔªËØµÄ³õÊ¼»¯
+  // @wx æ–°åŠ å…¥å…ƒç´ çš„åˆå§‹åŒ–
   t->base_priority = priority;
   list_init (&t->locks);
   t->lock_waiting = NULL;
-  // @wx ²åÈë¾ÍÐ÷¶ÓÁÐµÄÔªËØ°´ÓÅÏÈ¼¶ÅÅ¶Ó
+  // @wx æ’å…¥å°±ç»ªé˜Ÿåˆ—çš„å…ƒç´ æŒ‰ä¼˜å…ˆçº§æŽ’é˜Ÿ
   // list_push_back (&all_list, &t->allelem);
   list_insert_ordered (&all_list, &t->allelem, (list_less_func *) &thread_cmp_priority, NULL);
 }
@@ -562,15 +562,15 @@ next_thread_to_run (void)
 void
 thread_schedule_tail (struct thread *prev)
 {
-  struct thread *cur = running_thread ();   // »ñµÃµ±Ç°ÔËÐÐµÄÏß³Ì
+  struct thread *cur = running_thread ();   // èŽ·å¾—å½“å‰è¿è¡Œçš„çº¿ç¨‹
   
-  ASSERT (intr_get_level () == INTR_OFF);   // È·±£ÖÐ¶Ï¹Ø±Õ
+  ASSERT (intr_get_level () == INTR_OFF);   // ç¡®ä¿ä¸­æ–­å…³é—­
 
   /* Mark us as running. */
-  cur->status = THREAD_RUNNING;				// ½«µ±Ç°ÔËÐÐµÄÏß³ÌµÄ×´Ì¬×ª»»ÎªTHREAD_RUNNING
+  cur->status = THREAD_RUNNING;				// å°†å½“å‰è¿è¡Œçš„çº¿ç¨‹çš„çŠ¶æ€è½¬æ¢ä¸ºTHREAD_RUNNING
 
   /* Start new time slice. */
-  thread_ticks = 0;							// ÎªÐÂÖ´ÐÐµÄÏß³ÌÖØÐÂ¿ªÊ¼¼ÆËãÊ±¼äÆ¬
+  thread_ticks = 0;							// ä¸ºæ–°æ‰§è¡Œçš„çº¿ç¨‹é‡æ–°å¼€å§‹è®¡ç®—æ—¶é—´ç‰‡
 
 #ifdef USERPROG
   /* Activate the new address space. */
@@ -584,8 +584,8 @@ thread_schedule_tail (struct thread *prev)
      palloc().) */
   if (prev != NULL && prev->status == THREAD_DYING && prev != initial_thread) 
     {
-      ASSERT (prev != cur);			// Èç¹û±»ÇÐ»»µÄÏß³ÌÒÑ¾­dying£¬ÄÇÃ´ÊÍ·ÅÕâ¸öÏß³ÌµÄ×ÊÔ´
-      palloc_free_page (prev);		// µ«ÊÇ²»ÄÜÊÍ·Å³õÊ¼Ïß³ÌµÄ×ÊÔ´
+      ASSERT (prev != cur);			// å¦‚æžœè¢«åˆ‡æ¢çš„çº¿ç¨‹å·²ç»dyingï¼Œé‚£ä¹ˆé‡Šæ”¾è¿™ä¸ªçº¿ç¨‹çš„èµ„æº
+      palloc_free_page (prev);		// ä½†æ˜¯ä¸èƒ½é‡Šæ”¾åˆå§‹çº¿ç¨‹çš„èµ„æº
     }
 }
 
@@ -603,12 +603,12 @@ schedule (void)
   struct thread *next = next_thread_to_run ();
   struct thread *prev = NULL;
 
-  ASSERT (intr_get_level () == INTR_OFF);		// ÖÐ¶Ï±ØÐëÊÇ¹Ø×ÅµÄ
-  ASSERT (cur->status != THREAD_RUNNING);		// µ±Ç°½ø³ÌµÄ×´Ì¬±ØÐëÒÑ¾­¸Ä±äÁË
-  ASSERT (is_thread (next));					// next±ØÐëÊÇÒ»¸ö½ø³Ì
+  ASSERT (intr_get_level () == INTR_OFF);		// ä¸­æ–­å¿…é¡»æ˜¯å…³ç€çš„
+  ASSERT (cur->status != THREAD_RUNNING);		// å½“å‰è¿›ç¨‹çš„çŠ¶æ€å¿…é¡»å·²ç»æ”¹å˜äº†
+  ASSERT (is_thread (next));					// nextå¿…é¡»æ˜¯ä¸€ä¸ªè¿›ç¨‹
 
-  if (cur != next)			// Èç¹ûµ±Ç°Ïß³ÌÓëÏÂÒ»¸öÏß³Ì ²»ÊÇÍ¬Ò»¸öÏß³ÌµÄ»°
-    prev = switch_threads (cur, next);	// ½øÐÐÏß³ÌÇÐ»»
+  if (cur != next)			// å¦‚æžœå½“å‰çº¿ç¨‹ä¸Žä¸‹ä¸€ä¸ªçº¿ç¨‹ ä¸æ˜¯åŒä¸€ä¸ªçº¿ç¨‹çš„è¯
+    prev = switch_threads (cur, next);	// è¿›è¡Œçº¿ç¨‹åˆ‡æ¢
   thread_schedule_tail (prev);
 }
 
@@ -631,10 +631,10 @@ allocate_tid (void)
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
 /*@ wx*/
-/*¼ì²â±»×èÈûµÄÏß³Ì*/
+/*æ£€æµ‹è¢«é˜»å¡žçš„çº¿ç¨‹*/
 /**
-*Ã¿´Îµ÷ÓÃÊ± Ïß³ÌµÄticks_blocked¼õÒ»
-*µ±Ïß³ÌµÄticks_blockedµÈÓÚ0Ê± »½ÐÑÏß³Ì
+*æ¯æ¬¡è°ƒç”¨æ—¶ çº¿ç¨‹çš„ticks_blockedå‡ä¸€
+*å½“çº¿ç¨‹çš„ticks_blockedç­‰äºŽ0æ—¶ å”¤é†’çº¿ç¨‹
 */
 void
 blocked_thread_check (struct thread *t, void *aux UNUSED)
@@ -644,7 +644,7 @@ blocked_thread_check (struct thread *t, void *aux UNUSED)
       t->ticks_blocked--;
       if (t->ticks_blocked == 0)
       {
-          thread_unblock(t);    // ½«Ïß³Ì·Åµ½¾ÍÐ÷¶ÓÁÐ
+          thread_unblock(t);    // å°†çº¿ç¨‹æ”¾åˆ°å°±ç»ªé˜Ÿåˆ—
       }
   }
 }
@@ -680,8 +680,8 @@ thread_remove_lock (struct lock * lock)
   intr_set_level (old_level);
 }
 
-/*µ±ÊÍ·ÅµôÒ»¸öËøµÄÊ±ºò£¬ µ±Ç°Ïß³ÌµÄÓÅÏÈ¼¶¿ÉÄÜ·¢Éú±ä»¯ 
-ÎÒÃÇÓÃthread_update_priorityÀ´´¦ÀíÕâ¸öÂß¼­*/
+/*å½“é‡Šæ”¾æŽ‰ä¸€ä¸ªé”çš„æ—¶å€™ï¼Œ å½“å‰çº¿ç¨‹çš„ä¼˜å…ˆçº§å¯èƒ½å‘ç”Ÿå˜åŒ– 
+æˆ‘ä»¬ç”¨thread_update_priorityæ¥å¤„ç†è¿™ä¸ªé€»è¾‘*/
 void 
 thread_update_priority (struct thread * t)
 {
@@ -694,7 +694,7 @@ thread_update_priority (struct thread * t)
     list_sort (&t->locks, lock_cmp_priority, NULL);
     lock_priority = list_entry (list_front(&t->locks), struct lock, elem)->max_priority;
 	if (lock_priority > max_priority)
-      max_priority = lock_priority;   // ½«ÉêÇë¸ÃËø¶ÓÁÐÖÐµÄ×î´óÓÅÏÈ¼¶¸³¸øµ±Ç°Ïß³Ì
+      max_priority = lock_priority;   // å°†ç”³è¯·è¯¥é”é˜Ÿåˆ—ä¸­çš„æœ€å¤§ä¼˜å…ˆçº§èµ‹ç»™å½“å‰çº¿ç¨‹
   }
 
   t->priority = max_priority;

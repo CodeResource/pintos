@@ -72,7 +72,7 @@ sema_down (struct semaphore *sema)
       // 信号量队列中的元素 按其线程优先级的顺序排列
       list_insert_ordered (&sema->waiters, &thread_current ()->elem, thread_cmp_priority, NULL);
       //list_push_back (&sema->waiters, &thread_current ()->elem);
-      thread_block ();
+      thread_block ();  // 线程阻塞 等待唤醒
     }
   sema->value--;
   intr_set_level (old_level);
@@ -121,9 +121,11 @@ sema_up (struct semaphore *sema)
     /*将信号量等待队列实现为优先级队列*/
     list_sort (&sema->waiters, thread_cmp_priority, NULL);
     thread_unblock (list_entry (list_pop_front (&sema->waiters),
-                                struct thread, elem));
+                                struct thread, elem));   // 唤醒等待线程
   }
   sema->value++;
+  // @wx 这里少加了一句，导致了错误
+  thread_yield ();  // 重新调度
   intr_set_level (old_level);
 }
 
@@ -273,14 +275,14 @@ lock_release (struct lock *lock)
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
 	
+  lock->holder = NULL;
+  sema_up (&lock->semaphore);
+
   // @wx add
    if (!thread_mlfqs)
    {
-    thread_remove_lock(lock);
+      thread_remove_lock(lock);
    }
-
-  lock->holder = NULL;
-  sema_up (&lock->semaphore);
 }
 
 /* Returns true if the current thread holds LOCK, false

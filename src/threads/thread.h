@@ -101,13 +101,13 @@ struct thread
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
 
-	/*@wx ¼ÇÂ¼Ïß³Ì±»×èÈûµÄÊ±¼ä*/
+	/*@wx è®°å½•çº¿ç¨‹è¢«é˜»å¡çš„æ—¶é—´*/
 	int64_t ticks_blocked;
 
-	// @wx ÎªÊµÏÖpriorityÌí¼ÓµÄÊı¾İ½á¹¹
+	// @wx ä¸ºå®ç°priorityæ·»åŠ çš„æ•°æ®ç»“æ„
 	int base_priority;
-	struct list locks;				// Ïß³ÌÓµÓĞµÄËø
-	struct lock * lock_waiting;		// Ïß³ÌµÈ´ıµÄËø
+	struct list locks;				// çº¿ç¨‹æ‹¥æœ‰çš„é”
+	struct lock * lock_waiting;		// çº¿ç¨‹ç­‰å¾…çš„é”
   };
 
 /* If false (default), use round-robin scheduler.
@@ -149,9 +149,9 @@ int thread_get_load_avg (void);
 /*@ wx*/
 void blocked_thread_check (struct thread *t, void *aux UNUSED);
 bool thread_cmp_priority (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
-/*Ïß³ÌÓÅÏÈ¼¶¾èÔù*/
+/*çº¿ç¨‹ä¼˜å…ˆçº§æèµ */
 void thread_donate_priority (struct thread * t);
-/*ÊÍ·ÅËø*/
+/*é‡Šæ”¾é”*/
 void thread_remove_lock (struct lock * lock);
 void thread_update_priority (struct thread * t);
 

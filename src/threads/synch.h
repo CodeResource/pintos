@@ -23,9 +23,9 @@ struct lock
     struct thread *holder;      /* Thread holding lock (for debugging). */
     struct semaphore semaphore; /* Binary semaphore controlling access. */
 
-	// @wx ÎªÊµÏÖÓÅÏÈ¼¶Ìí¼ÓµÄËø
-	struct list_elem elem;		/*ÓÅÏÈ¼¶¾èÔùµÄÁĞ±íÔªËØ*/
-	int max_priority;			/*»ñÈ¡µÄËøµÄÏß³ÌµÄ×î´óÓÅÏÈ¼¶*/
+	// @wx ä¸ºå®ç°ä¼˜å…ˆçº§æ·»åŠ çš„é”
+	struct list_elem elem;		/*ä¼˜å…ˆçº§æèµ çš„åˆ—è¡¨å…ƒç´ */
+	int max_priority;			/*è·å–çš„é”çš„çº¿ç¨‹çš„æœ€å¤§ä¼˜å…ˆçº§*/
   };
 
 void lock_init (struct lock *);
@@ -48,7 +48,7 @@ void cond_broadcast (struct condition *, struct lock *);
 /*@wx add*/
 void thread_hold_the_lock(struct lock * lock);
 
-/*@ wx Ëø¶ÓÁĞÅÅĞòº¯Êı*/
+/*@ wx é”é˜Ÿåˆ—æ’åºå‡½æ•°*/
 bool lock_cmp_priority (const struct list_elem *a, const struct list_elem *b, void *aux);
 bool cond_sema_cmp_priority (const struct list_elem *a, const struct list_elem *b, void *aux);
 
