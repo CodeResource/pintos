@@ -217,14 +217,15 @@ lock_acquire (struct lock *lock)
 	  while(l && current_thread->priority > l->max_priority)
 	  {
 		  l->max_priority = current_thread->priority;
-		  thread_donate_priority (l->holder);
-		  l = l->holder->lock_waiting;
+		  thread_donate_priority (l->holder);   // @wx 递归捐赠
+		  l = l->holder->lock_waiting;          // 持有锁的线程等待获取的锁
 	  }
   }
 
   sema_down (&lock->semaphore);
 
   // @wx add
+  // 获取锁之后的操作
   old_level = intr_disable();
   
   current_thread = thread_current();
@@ -269,13 +270,14 @@ lock_try_acquire (struct lock *lock)
 void
 lock_release (struct lock *lock) 
 {
-  if (!thread_mlfqs)
-  {
-    thread_remove_lock(lock);
-  }
-
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
+	
+  // @wx add
+   if (!thread_mlfqs)
+   {
+    thread_remove_lock(lock);
+   }
 
   lock->holder = NULL;
   sema_up (&lock->semaphore);
