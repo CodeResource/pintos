@@ -1,5 +1,5 @@
-#ifndef __THREAD_FIXED_POINT_H
-#define __THREAD_FIXED_POINT_H
+#ifndef __THREADS_FIXED_POINT_H
+#define __THREADS_FIXED_POINT_H
 
 /* Basic definitions of fixed point. */
 typedef int fixed_t;
@@ -30,4 +30,4 @@ typedef int fixed_t;
 #define FP_ROUND(A) (A >= 0 ? ((A + (1 << (FP_SHIFT_AMOUNT - 1))) >> FP_SHIFT_AMOUNT) \
         : ((A - (1 << (FP_SHIFT_AMOUNT - 1))) >> FP_SHIFT_AMOUNT))
 
-#endif /* thread/fixed_point.h */
+#endif /* threads/fixed_point.h */
