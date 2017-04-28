@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "threads/fixed_point.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -108,6 +109,10 @@ struct thread
 	int base_priority;
 	struct list locks;				// 线程拥有的锁
 	struct lock * lock_waiting;		// 线程等待的锁
+
+	/*实现多级反馈队列添加的元素*/
+	int nice;
+	fixed_t recent_cpu;
   };
 
 /* If false (default), use round-robin scheduler.
@@ -154,5 +159,10 @@ void thread_donate_priority (struct thread * t);
 /*释放锁*/
 void thread_remove_lock (struct lock * lock);
 void thread_update_priority (struct thread * t);
+
+/*实现多级反馈队列添加的函数*/
+void thread_mlfqs_increase_recent_cpu_by_one (void);
+void thread_mlfqs_update_load_avg_and_recent_cpu (void);
+void thread_mlfqs_update_priority (struct thread * t);
 
 #endif /* threads/thread.h */
