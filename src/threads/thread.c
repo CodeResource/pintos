@@ -781,3 +781,21 @@ thread_mlfqs_update_priority (struct thread *t)
   t->priority = t->priority < PRI_MIN ? PRI_MIN : t->priority;  // 优先级不能超出 最小优先级到最大优先级这个范围
   t->priority = t->priority > PRI_MAX ? PRI_MAX : t->priority;
 }
+
+// @wx add .pro2
+/*通过ID获得进程*/
+struct thread * get_thread(tid_t tid)
+{
+  struct list_elem *e;
+
+  ASSERT (intr_get_level () == INTR_OFF);
+
+  for (e = list_begin (&all_list); e != list_end (&all_list);
+       e = list_next (e))
+  {
+    struct thread *t = list_entry (e, struct thread, allelem);
+	if( t->tid == tid )
+		return t;
+  }
+  return null;
+}

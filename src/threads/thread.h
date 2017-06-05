@@ -113,7 +113,16 @@ struct thread
 	/*实现多级反馈队列添加的元素*/
 	int nice;
 	fixed_t recent_cpu;
-  };
+
+  // @wx pro2 添加代码
+  int exit_status;             // 用于记录进程退出状态
+  struct semaphore sema;       // 进程的信号量
+  int num_file_open;           // 记录正在运行中的进程的数量
+  int open_file[128];          // 记录线程所开启的文件的编号
+  tid_t parent_tid;            // 用于记录当前线程的父线程
+  bool is_waited;              // 记录当前线程是否被他的父线程等待
+  bool is_dead;                // 用于判断当前线程是否被杀死
+};
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
@@ -164,5 +173,8 @@ void thread_update_priority (struct thread * t);
 void thread_mlfqs_increase_recent_cpu_by_one (void);
 void thread_mlfqs_update_load_avg_and_recent_cpu (void);
 void thread_mlfqs_update_priority (struct thread * t);
+
+// @wx
+struct thread * get_thread(tid_t tid);
 
 #endif /* threads/thread.h */

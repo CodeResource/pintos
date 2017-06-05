@@ -88,7 +88,16 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
-  return -1;
+  // @ wx
+  //return -1;
+  struct thread * t;
+  t = get_thread(child_tid);  // 取得child_tid子线程的所有信息
+  if (t == NULL || T->is_dead == true 
+  	|| t->is_waited == true)
+  	return -1;
+  sema_down(&t->sema);
+  t->is_waited = true;
+  return t->exit_status;
 }
 
 /* Free the current process's resources. */
@@ -97,6 +106,11 @@ process_exit (void)
 {
   struct thread *cur = thread_current ();
   uint32_t *pd;
+
+  // @wx add
+  printf("%s: exit(%d)\n", thread_current()->name, 
+  	thread_current()->exit_status);  // 打印线程的名字和退出状态
+  sema_up (&cur->sema); // 修改进程的信号量
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -120,21 +134,21 @@ process_exit (void)
    thread.
    This function is called on every context switch. */
 
-// ��Ҫ���������£�
-// 1. ����ҳĿ¼��
-// 2. ���������ֳ���ϢTSS
+// Ö÷Òª×öÁËÁ½¼þÊÂ£º
+// 1. ¸üÐÂÒ³Ä¿Â¼±í
+// 2. ¸üÐÂÈÎÎñÏÖ³¡ÐÅÏ¢TSS
 void
 process_activate (void)
 {
-  struct thread *t = thread_current ();   // ��ȡ��ǰ�߳�
+  struct thread *t = thread_current ();   // »ñÈ¡µ±Ç°Ïß³Ì
 
   /* Activate thread's page tables. */
-  pagedir_activate (t->pagedir);		  // ����ҳĿ¼��
+  pagedir_activate (t->pagedir);		  // ¸üÐÂÒ³Ä¿Â¼±í
 
   /* Set thread's kernel stack for use in processing
      interrupts. */
-  // tss: task state segment ����״̬�� 
-  // ��������л�ʱ�������ֳ���Ϣ
+  // tss: task state segment ÈÎÎñ×´Ì¬¶Î 
+  // ÈÎÎñ½ø³ÌÇÐ»»Ê±µÄÈÎÎñÏÖ³¡ÐÅÏ¢
   tss_update ();
 }
 
