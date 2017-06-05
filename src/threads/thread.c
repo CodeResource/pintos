@@ -533,6 +533,8 @@ init_thread (struct thread *t, const char *name, int priority)
   // @wx 插入就绪队列的元素按优先级排队
   // list_push_back (&all_list, &t->allelem);
   list_insert_ordered (&all_list, &t->allelem, (list_less_func *) &thread_cmp_priority, NULL);
+
+  t->ret = 0;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and

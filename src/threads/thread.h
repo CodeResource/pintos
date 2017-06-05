@@ -113,6 +113,9 @@ struct thread
 	/*实现多级反馈队列添加的元素*/
 	int nice;
 	fixed_t recent_cpu;
+
+	// @ wx add .pro2
+	int ret;
   };
 
 /* If false (default), use round-robin scheduler.
